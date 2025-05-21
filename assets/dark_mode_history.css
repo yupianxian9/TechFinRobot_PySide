@@ -1,0 +1,72 @@
+/* assets/dark_mode_history.css */
+/* 仅用于渲染保存的HTML历史记录文件 */
+
+body {
+    font-family: "微软雅黑", "Segoe UI", sans-serif;
+    font-size: 10pt;
+    margin: 0;
+    padding: 10px;
+    background-color: #1A1A1A; /* 接近纯黑的深灰色 */
+    color: #E0E0E0; /* 亮灰文本 */
+}
+
+.message-container {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+.avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 100%;
+    margin-right: 8px;
+    vertical-align: top;
+}
+
+.user-message-box {
+    background-color: #4CAF50; /* 柔和的深绿色气泡 */
+    border: 1px solid #388E3C;
+    padding: 8px;
+    border-radius: 8px;
+    max-width: 75%;
+    flex-grow: 1;
+    color: #FFFFFF;
+    word-wrap: break-word;
+}
+
+.assistant-message-box {
+    background-color: #36454F; /* 深蓝灰色气泡 */
+    border: 1px solid #2C353D;
+    padding: 8px;
+    border-radius: 8px;
+    max-width: 75%;
+    flex-grow: 1;
+    color: #FFFFFF;
+    word-wrap: break-word;
+}
+
+a {
+    color: #7AA2F7;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+code {
+    background-color: #3D3D3D;
+    border-radius: 3px;
+    padding: 2px 4px;
+    font-family: monospace;
+}
+
+pre {
+    background-color: #2A2A2A;
+    border-radius: 5px;
+    padding: 10px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
