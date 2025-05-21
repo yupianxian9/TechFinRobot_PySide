@@ -437,11 +437,6 @@ class ChatGUI(QMainWindow):
                  # The most crucial part is the user's latest query.
                  pass # Let it send if list is not empty
 
-            if not api_messages_for_request and self.dialog_history: # If only welcome message was filtered out
-                last_user_message = next((msg for msg in reversed(self.dialog_history) if msg['role'] == 'user'), None)
-                if last_user_message:
-                    api_messages_for_request = [{'role': 'user', 'content': last_user_message['content']}]
-
 
             if not api_messages_for_request:
                  logging.warning("API messages for request is empty after filtering. Cannot send request.")
@@ -637,7 +632,8 @@ class ChatGUI(QMainWindow):
                 match = re.match(r'chat_(\d{14})\.html', filename)
                 if match:
                     timestamp_str = match.group(1)
-                    display_title = datetime.strptime(timestamp_str, "%Y%m%d%H%M%S").strftime("%Y年%m月%d日 %H:%M")
+                    # 将时间戳格式化为“2019年2月2日 12点35分21秒”
+                    display_title = datetime.strptime(timestamp_str, "%Y%m%d%H%M%S").strftime("%Y年%m月%d日%H点%M分%S秒")
                 else:
                     display_title = filename.replace(".html", "")
 
@@ -777,6 +773,3 @@ class ChatGUI(QMainWindow):
         self._save_config() 
         logging.info("应用程序关闭。")
         super().closeEvent(event)
-
-# if __name__ == '__main__':
-#     # ... (测试代码可以保留，但对于最终版本可能不需要)
