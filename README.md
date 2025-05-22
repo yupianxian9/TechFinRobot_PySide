@@ -1,4 +1,4 @@
-# AI Financial Assistant
+# TechFinRobot_PySide
 
 This is a desktop application developed with PySide6, functioning as an AI financial assistant. It leverages Alibaba Cloud's DashScope Application Center models to provide interactive chat capabilities, allowing users to get answers to their financial questions. The application supports API key configuration, model selection, chat history management, and a dark mode for enhanced user experience.
 
