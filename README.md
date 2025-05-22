@@ -17,7 +17,9 @@ This is a desktop application developed with PySide6, functioning as an AI finan
 
 ## screencap
 
+![](./img/1.png)
 
+![](./img/2.png)
 
 ## Models Supported
 
