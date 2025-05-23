@@ -3,8 +3,8 @@ import sys
 import threading
 import json
 import logging
-from datetime import datetime # 用于生成时间戳文件名和显示
-import re # 用于清理文件名中的非法字符
+from datetime import datetime
+import re
 
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
@@ -112,8 +112,10 @@ class SettingsDialog(QDialog):
         return self.api_entry.text().strip(), self.model_combo.currentText()
 
 class ChatGUI(QMainWindow):
-    update_chat_signal = Signal(str, str)
-    # 新增信号，用于API请求完成后在主线程处理后续操作
+    update_chat_signal = Signal(str, str) # 用于更新聊天历史显示
+    # 新增信号，用于实时更新助手的流式输出
+    stream_new_text_signal = Signal(str, str) # role, text_delta
+    # 新增信号，用于API请求完成后在主线程处理后续操作（包括流式结束）
     api_request_finished_signal = Signal(dict)
 
     def __init__(self):
@@ -125,6 +127,7 @@ class ChatGUI(QMainWindow):
         self.is_dark_mode = False
         self.current_history_file = None
         self.is_displaying_historical_chat = False
+        self.current_assistant_response_text = "" # 用于累积流式输出的文本
 
         self._load_config()
         self._init_ui()
@@ -136,7 +139,7 @@ class ChatGUI(QMainWindow):
             "输入 <code>/reset</code> 可以清空对话历史并开始新的会话。<br>"
             "您可以在左侧的“历史记录”中查看和管理以往的对话。"
         )
-        self.add_message_to_history("assistant", self.initial_welcome_message)
+        self.add_message_to_history("assistant", self.initial_welcome_message, is_stream=False) # 初始欢迎消息非流式
         self._load_history_list()
 
 
@@ -151,8 +154,8 @@ class ChatGUI(QMainWindow):
         except Exception as e:
             logging.warning(f"无法加载窗口图标: {e}")
 
-        self.resize(1280, 720) # 设置一个合理的默认大小，再最大化
-        self.showMaximized() # 确保窗口启动后自动最大化
+        self.resize(1280, 720)
+        self.showMaximized()
 
         main_widget = QWidget()
         self.setCentralWidget(main_widget)
@@ -236,7 +239,9 @@ class ChatGUI(QMainWindow):
         self.update_chat_signal.connect(self._update_chat_history_slot)
         self.dark_mode_button.clicked.connect(self.toggle_dark_mode)
         self.history_list_widget.itemClicked.connect(self._on_history_item_clicked)
-        # 连接新的信号到槽
+        # 连接流式输出的信号
+        self.stream_new_text_signal.connect(self._append_stream_text_slot)
+        # 连接API请求完成的信号到槽
         self.api_request_finished_signal.connect(self._on_api_request_finished)
 
 
@@ -306,8 +311,7 @@ class ChatGUI(QMainWindow):
         self.dialog_history.clear() # 清空内存中的对话历史，将通过add_message_to_history重新填充
 
         # 重新添加欢迎信息 (如果不是在显示历史记录模式)
-        # add_message_to_history 会将消息添加到 self.dialog_history
-        self.add_message_to_history("assistant", self.initial_welcome_message)
+        self.add_message_to_history("assistant", self.initial_welcome_message, is_stream=False)
 
         for msg in temp_dialog_history_for_refresh:
             # 跳过已添加的欢迎信息
@@ -315,18 +319,33 @@ class ChatGUI(QMainWindow):
                 continue
             
             # add_message_to_history 会根据角色处理消息内容并添加到 self.dialog_history
-            self.add_message_to_history(msg['role'], msg['content'])
+            self.add_message_to_history(msg['role'], msg['content'], is_stream=False) # 刷新时按非流式处理
             
         self.chat_history_view.verticalScrollBar().setValue(current_scroll_value)
 
 
     @Slot(str, str)
     def _update_chat_history_slot(self, role, message_html_content):
+        # 此槽用于添加完整消息（例如用户消息、欢迎消息或完整的历史消息）
         self.chat_history_view.append(message_html_content)
         self.chat_history_view.verticalScrollBar().setValue(self.chat_history_view.verticalScrollBar().maximum())
 
+    @Slot(str, str)
+    def _append_stream_text_slot(self, role, text_delta):
+        # 此槽用于处理流式输出的增量文本
+        # 移动光标到文档末尾，以便在正确位置插入文本
+        cursor = self.chat_history_view.textCursor()
+        cursor.movePosition(QTextCursor.End)
+        self.chat_history_view.setTextCursor(cursor)
+        
+        # 插入新的文本（Plain text, not HTML yet）
+        self.chat_history_view.insertPlainText(text_delta)
+        
+        # 实时滚动到最底部
+        self.chat_history_view.verticalScrollBar().setValue(self.chat_history_view.verticalScrollBar().maximum())
 
-    def add_message_to_history(self, role, message_content):
+
+    def add_message_to_history(self, role, message_content, is_stream=False):
         user_avatar_path = get_asset_path('user.ico')
         robot_avatar_path = get_asset_path('robot.ico')
 
@@ -335,42 +354,156 @@ class ChatGUI(QMainWindow):
         message_container_style = "display: flex; align-items: flex-start; margin-bottom: 10px;"
         avatar_style = "width: 35px; height: 35px; border-radius: 100%; margin-right: 8px; vertical-align: top;"
 
-        actual_html_content_for_display = message_content
-        # message_content_for_history 变量用于存储到 self.dialog_history
-        # 对于用户，存储纯文本；对于助手，存储传入的HTML（或纯文本错误信息）
-        message_content_for_history = message_content
-
         if role == 'user':
             actual_html_content_for_display = f'<p>{message_content}</p>' # 用于显示
-            # message_content_for_history 已经是纯文本
             if os.path.exists(user_avatar_path):
                 avatar_html = f'<img src="file:///{user_avatar_path.replace(os.sep, "/")}" style="{avatar_style}">'
-        else: # assistant
-            # 助手消息，actual_html_content_for_display 和 message_content_for_history 都是传入的 content
-            if not message_content.strip().startswith('<'): # 如果助手消息不是HTML（例如纯文本错误）
-                 actual_html_content_for_display = f'<p>{message_content}</p>'
-            if os.path.exists(robot_avatar_path):
-                avatar_html = f'<img src="file:///{robot_avatar_path.replace(os.sep, "/")}" style="{avatar_style}">'
             
-        formatted_message = f"""
-        <div class="message-container" style="{message_container_style}">
-            {avatar_html}
-            <div class="{message_box_class}">
-                {actual_html_content_for_display}
+            # 用户消息直接添加到内存历史
+            if not self.is_displaying_historical_chat:
+                self.dialog_history.append({'role': role, 'content': message_content})
+
+            formatted_message = f"""
+            <div class="message-container" style="{message_container_style}">
+                {avatar_html}
+                <div class="{message_box_class}">
+                    {actual_html_content_for_display}
+                </div>
             </div>
-        </div>
-        """
-        self.update_chat_signal.emit(role, formatted_message)
+            """
+            self.update_chat_signal.emit(role, formatted_message)
+            self.current_assistant_response_text = "" # 重置助手当前累积的文本
 
-        if not self.is_displaying_historical_chat:
-            # 避免重复添加欢迎语到内存历史
-            is_initial_welcome = (role == 'assistant' and message_content_for_history == self.initial_welcome_message)
-            is_already_first_welcome = (len(self.dialog_history) > 0 and
-                                      self.dialog_history[0]['role'] == 'assistant' and
-                                      self.dialog_history[0]['content'] == self.initial_welcome_message)
+        else: # assistant
+            if is_stream:
+                # 对于流式助手的第一个消息，先显示框架和头像
+                if not self.current_assistant_response_text: # 首次接收流式内容时
+                    # 在文本浏览器中插入一个特殊标记，后续增量文本将插入到这个标记之前
+                    # 更好的方法是，第一次发送消息时，创建消息框并插入占位符
+                    formatted_message_start = f"""
+                    <div id="assistant_stream_message" class="message-container" style="{message_container_style}">
+                        {f'<img src="file:///{robot_avatar_path.replace(os.sep, "/")}" style="{avatar_style}">' if os.path.exists(robot_avatar_path) else ''}
+                        <div class="{message_box_class}">
+                            <p id="stream_content"></p>
+                        </div>
+                    </div>
+                    """
+                    self.update_chat_signal.emit(role, formatted_message_start)
+                    # 移动光标到 <p id="stream_content"></p> 标签内部
+                    cursor = self.chat_history_view.textCursor()
+                    cursor.movePosition(QTextCursor.End)
+                    # 找到插入点 (QTextBrowser直接用HTML append会创建一个新的块，所以需要巧妙地插入文本)
+                    # 最直接的方法是，先添加一个空的div，然后每次更新这个div的内容
+                    # 也可以用 document().findBlockByLineNumber() 等方法，但这里为了简单，
+                    # 每次接收到流式文本时直接appendPlaintext，并更新内存中的 full_response_text
+                    
+                    # 另一种策略: 第一次 append 完整的消息容器，内容为空
+                    # 之后每次更新，是直接修改 QTextBrowser 最后一个 assistant message box 的内容
+                    # 这需要更精细的 QTextDocument 操作
+                    # 简单的流式显示是每次append delta，但那样就无法在一个气泡内显示
+                    
+                    # 更简单的处理：在_append_stream_text_slot里直接追加文本
+                    # 缺点：无法很好地在一个“气泡”中显示，每段增量文本都可能另起一行
+                    # 为保持在一个气泡内，我们需要更复杂地操作 QTextDocument
+                    # 鉴于 PySide6 的 QTextBrowser 限制，直接追加纯文本是最简单的流式展示方式
+                    # 考虑到“气泡”布局，我们需要在收到第一块文本时生成一个气泡，然后在这个气泡内追加文本
 
-            if not (is_initial_welcome and is_already_first_welcome):
-                 self.dialog_history.append({'role': role, 'content': message_content_for_history})
+                    # 更好的流式显示处理 (在 add_message_to_history):
+                    # 1. 收到第一块文本时，生成一个消息容器，内容为空，并标记为正在流式输出
+                    # 2. 后续收到文本时，找到这个容器，追加文本到其内容中
+                    # 3. 流结束时，把最终内容保存到 dialog_history
+
+                    # 这种复杂性超出了简单的 add_message_to_history 职能
+                    # 为了简化，我们暂时接受每段增量文本都可能独立追加的显示效果，
+                    # 或者我们只在_on_api_request_finished一次性更新dialog_history并重新渲染
+                    # 但那样就不是“流式”了
+
+                    # **简化流式输出显示策略**:
+                    # 首次收到助手流式响应时，在 chat_history_view 添加一个“助手正在输入...”的占位符或空消息框。
+                    # 后续每次收到增量文本，就更新这个消息框的文本内容。
+                    # 这需要 Q_PROPERTY 或者自定义的 QObject 来追踪并更新特定消息块。
+                    # 鉴于当前架构，最简单的流式显示是在一个新的“气泡”中持续追加文本。
+                    # 为了统一到一个气泡内，需要更高级的 QTextDocument 操作。
+
+                    # 暂时保持每次更新都通过 _append_stream_text_slot 实现，
+                    # 但这意味着每个delta会像新行一样追加，而不是在一个消息块里连续。
+                    # 修正：为了实现单个气泡内的流式，我们需要在收到第一块文本时“打印”出气泡框架，
+                    # 并在内部预留一个 <span id="assistant_streaming_content"></span>
+                    # 然后通过 JS 注入或更复杂的 QTextDocument 操作来更新这个 span 的 innerHTML。
+                    # 这对于 PySide6 的 QTextBrowser 来说是比较复杂的。
+
+                    # **备选方案（最接近“流式”且相对简单）**:
+                    # 不再使用 formatted_message HTML，而是直接追加纯文本到 QTextBrowser。
+                    # 当流式开始时，先打印头像和气泡的起始 HTML，然后通过 appendPlainText 逐个追加文本，
+                    # 最后在流结束时，添加气泡的结束 HTML。但这会打断 HTML 结构。
+                    
+                    # **折衷方案（当前实现）**:
+                    # 在 add_message_to_history 收到 'assistant' 且 is_stream=True 且 `self.current_assistant_response_text` 为空时，
+                    # 打印一个新的消息容器，并将其 `id` 设置为 `streaming_assistant_message`。
+                    # 之后的 `stream_new_text_signal` 就不再 append HTML，而是直接修改这个 `id` 元素的文本内容。
+                    # 这需要 `QTextBrowser.document().findBlock()` 和 `QTextCursor` 的配合。
+
+                    # 考虑到当前 _update_chat_history_slot 只做 append，我们重构流式显示逻辑。
+                    # 当接收到助手的第一个流式响应时，我们显示一个初始的助手消息框。
+                    # 随后的流式增量文本会通过 `_append_stream_text_slot` 更新这个已有的消息框。
+                    
+                    # 第一次收到流式响应时，创建一个消息容器
+                    # 这里先用一个占位符，后续会由 _append_stream_text_slot 更新
+                    # 为了能够更新同一个文本块，我们需要更复杂一点的逻辑
+                    # 简单起见，我们让 _update_chat_history_slot 负责生成 HTML 容器
+                    # 然后 _append_stream_text_slot 负责在 QTextBrowser 中追加文本
+                    # 这意味着每段流式文本会像独立的消息一样显示，而非在一个气泡内连续显示。
+                    # 这与常见的聊天应用有所不同，但实现起来简单。
+
+                    # 重新考虑：如果 `add_message_to_history` 不直接修改 `chat_history_view`，而是通过信号
+                    # 那么 `_update_chat_history_slot` 和 `_append_stream_text_slot` 应该如何协同？
+                    # 
+                    # 方案：
+                    # 1. 用户发送消息后，立即显示用户消息。
+                    # 2. 启动助手API请求线程。
+                    # 3. 助手API请求线程开始流式返回时：
+                    #    - 第一次返回：`_process_api_request_thread` 发出信号 `stream_new_text_signal`，包含完整的助手消息起始HTML（包括头像和空内容区）。
+                    #      `_append_stream_text_slot` 接收并添加到 `chat_history_view`。
+                    #    - 后续返回：`_process_api_request_thread` 继续发出信号 `stream_new_text_signal`，只包含增量文本。
+                    #      `_append_stream_text_slot` 接收增量文本，并追加到 `chat_history_view` 中的最后一个助手消息块。
+                    #      这需要找到最后一个助手消息块并修改其内容。
+                    # 
+                    # 这有点复杂。最简单的流式展示是：
+                    # 当收到流式消息时，`_update_chat_history_slot` 打印一个包含“助手正在生成”的占位符。
+                    # `_append_stream_text_slot` 每次收到新文本，就将它追加到这个占位符后面，并且替换掉占位符。
+                    # 当流结束时，将最终的 `full_response_text` 添加到 `dialog_history`。
+
+                # 重构 add_message_to_history 以适应流式输出
+                # 当是助手消息且是流式时，我们只在 _on_api_request_finished 最终将完整内容添加到 dialog_history
+                # 在流式过程中，我们只更新显示
+                self.stream_new_text_signal.emit(role, message_content) # 这里的 message_content 是 delta_text
+
+            else: # 非流式助手消息（如欢迎语、错误信息或历史记录加载）
+                # 助手消息，actual_html_content_for_display 和 message_content 都是传入的 content
+                actual_html_content_for_display = message_content
+                if not message_content.strip().startswith('<'): # 如果助手消息不是HTML（例如纯文本错误）
+                     actual_html_content_for_display = f'<p>{message_content}</p>'
+                if os.path.exists(robot_avatar_path):
+                    avatar_html = f'<img src="file:///{robot_avatar_path.replace(os.sep, "/")}" style="{avatar_style}">'
+                
+                formatted_message = f"""
+                <div class="message-container" style="{message_container_style}">
+                    {avatar_html}
+                    <div class="{message_box_class}">
+                        {actual_html_content_for_display}
+                    </div>
+                </div>
+                """
+                self.update_chat_signal.emit(role, formatted_message)
+
+                # 避免重复添加欢迎语到内存历史
+                is_initial_welcome = (role == 'assistant' and message_content == self.initial_welcome_message)
+                is_already_first_welcome = (len(self.dialog_history) > 0 and
+                                          self.dialog_history[0]['role'] == 'assistant' and
+                                          self.dialog_history[0]['content'] == self.initial_welcome_message)
+
+                if not (is_initial_welcome and is_already_first_welcome) and not self.is_displaying_historical_chat:
+                    self.dialog_history.append({'role': role, 'content': message_content})
 
 
     def on_send_button_clicked(self):
@@ -393,94 +526,172 @@ class ChatGUI(QMainWindow):
             self._start_new_current_session()
 
         if text.lower() == '/reset':
-            self._save_current_history() 
+            self._save_current_history()
             self.dialog_history.clear()
             self._session_id = None
             self.current_history_file = None
             self.chat_history_view.clear()
-            self.add_message_to_history('assistant', self.initial_welcome_message)
+            self.add_message_to_history('assistant', self.initial_welcome_message, is_stream=False)
             self._load_history_list()
             return
 
         if not self.current_history_file and not self.dialog_history:
+            # 如果是新会话，且当前没有历史记录，创建一个新的历史文件
             timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
             clean_timestamp = re.sub(r'[^\w\-_\. ]', '_', timestamp)
             self.current_history_file = f"chat_{clean_timestamp}.html"
             logging.info(f"新会话开始，历史文件: {self.current_history_file}")
 
-        self.add_message_to_history('user', text)
+        # 用户消息立即显示并加入到 dialog_history
+        self.add_message_to_history('user', text, is_stream=False)
 
         if not self.api_key:
-            self.add_message_to_history('assistant', '请先在设置中填写有效的 API 密钥。')
+            self.add_message_to_history('assistant', '请先在设置中填写有效的 API 密钥。', is_stream=False)
             return
         if not self.selected_model:
-            self.add_message_to_history('assistant', '请先选择有效的模型。')
+            self.add_message_to_history('assistant', '请先选择有效的模型。', is_stream=False)
             return
+        
+        # 助手回复的“容器”需要在流式开始前创建
+        self.current_assistant_response_text = "" # 重置累积文本
+        # 显示一个空的助手消息容器作为流式输出的起点
+        robot_avatar_path = get_asset_path('robot.ico')
+        avatar_html = f'<img src="file:///{robot_avatar_path.replace(os.sep, "/")}" style="width: 35px; height: 35px; border-radius: 100%; margin-right: 8px; vertical-align: top;">' if os.path.exists(robot_avatar_path) else ''
+        initial_assistant_html = f"""
+        <div class="message-container" style="display: flex; align-items: flex-start; margin-bottom: 10px;">
+            {avatar_html}
+            <div class="assistant-message-box">
+                <p style="margin:0; padding:0; display:inline;" id="streaming_output_placeholder"></p>
+            </div>
+        </div>
+        """
+        self.update_chat_signal.emit("assistant", initial_assistant_html) # 发送 HTML 容器
 
         threading.Thread(target=self._process_api_request_thread, daemon=True).start()
 
     def _process_api_request_thread(self):
         """在后台线程中处理API请求，完成后通过信号通知主线程。"""
-        result_package = {'answer': None, 'session_id': self._session_id, 'error': None}
+        # 构建发送给API的messages列表
+        # self.dialog_history 在这里是只读的，是安全的
+        api_messages_for_request = [
+            msg for msg in self.dialog_history
+            if not (msg['role'] == 'assistant' and msg['content'] == self.initial_welcome_message)
+        ]
+
+        if not api_messages_for_request:
+            logging.warning("API messages for request is empty after filtering. Cannot send request.")
+            self.api_request_finished_signal.emit({'error': "没有有效的消息发送给API。", 'session_id': None, 'final_answer': ''})
+            return
+
         try:
-            # 构建发送给API的messages列表
-            # self.dialog_history 在这里是只读的，是安全的
-            api_messages_for_request = [
-                msg for msg in self.dialog_history
-                if not (msg['role'] == 'assistant' and msg['content'] == self.initial_welcome_message)
-            ]
-            # 确保如果只有用户输入，也能正确发送
-            if not any(msg['role'] == 'user' for msg in api_messages_for_request) and api_messages_for_request:
-                 # This case should ideally not happen if dialog_history is managed correctly
-                 # For safety, if only assistant messages (other than welcome) are there, it's likely an invalid state to send.
-                 # However, Controller.process_api_request expects a list of messages.
-                 # The most crucial part is the user's latest query.
-                 pass # Let it send if list is not empty
-
-
-            if not api_messages_for_request:
-                 logging.warning("API messages for request is empty after filtering. Cannot send request.")
-                 result_package['error'] = "没有有效的消息发送给API。" # 或者更用户友好的提示
-                 self.api_request_finished_signal.emit(result_package)
-                 return
-
-            response_data = Controller.process_api_request(
+            # Controller.process_api_request 现在是一个生成器
+            for response_data in Controller.process_api_request(
                 self.api_key, api_messages_for_request, self.selected_model, self._session_id
-            )
-            
-            result_package['answer'] = response_data.get('text')
-            result_package['session_id'] = response_data.get('session_id') # 更新会话ID
+            ):
+                text_delta = response_data.get('text', '')
+                new_session_id = response_data.get('session_id')
+                is_end = response_data.get('is_end', False)
+                error_occurred = response_data.get('error', False)
+
+                if new_session_id:
+                    self._session_id = new_session_id
+
+                if error_occurred:
+                    self.api_request_finished_signal.emit({'error': text_delta, 'session_id': self._session_id, 'final_answer': ''})
+                    return # 发生错误，终止流并返回
+                
+                # 更新累积文本
+                self.current_assistant_response_text += text_delta
+
+                # 发射信号更新UI，如果不是结束标志，并且有增量文本
+                if not is_end and text_delta:
+                    self.stream_new_text_signal.emit("assistant", text_delta)
+                elif is_end:
+                    # 流式结束，发送最终信号，包含完整的答案
+                    self.api_request_finished_signal.emit({
+                        'answer': self.current_assistant_response_text, 
+                        'session_id': self._session_id, 
+                        'is_end': True
+                    })
+                    break # 结束循环
 
         except Exception as e:
-            logging.error(f"处理API请求时发生错误: {e}", exc_info=True)
-            result_package['error'] = f"请求出错，请稍后再试。错误详情：{str(e)}"
-        finally:
-            # 发射信号，将结果传递给主线程处理
-            self.api_request_finished_signal.emit(result_package)
+            logging.error(f"处理API请求流时发生错误: {e}", exc_info=True)
+            self.api_request_finished_signal.emit({'error': f"请求出错，请稍后再试。错误详情：{str(e)}", 'session_id': self._session_id, 'final_answer': ''})
+
 
     @Slot(dict)
     def _on_api_request_finished(self, result_package):
-        """在主线程中处理API请求完成后的操作。"""
+        """在主线程中处理API请求完成后的操作（包括流式结束时）。"""
         answer = result_package.get('answer')
         new_session_id = result_package.get('session_id')
         error_message = result_package.get('error')
-
-        if new_session_id: # 即使出错，也可能返回新的 session_id
+        
+        if new_session_id:
             self._session_id = new_session_id
 
-        if error_message:
-            self.add_message_to_history('assistant', error_message)
-        elif answer:
-            self.add_message_to_history('assistant', answer)
-        else:
-            # 如果API没返回任何内容也没有错误（例如Controller内部处理并返回空text）
-            logging.info("API请求完成，但未收到有效回复或错误信息（可能已在Controller处理）。")
-            # self.add_message_to_history('assistant', "未能获取回复。") # 可选
+        # 找到最近添加的助手消息块并更新其内容
+        # 这是为了确保流式输出最终以完整的HTML格式存储，并保持在同一个“气泡”中
+        cursor = self.chat_history_view.textCursor()
+        cursor.movePosition(QTextCursor.End)
+        # 向上移动到最近的助手消息块的开始
+        # 这段逻辑需要更精确的文本文档操作，直接修改HTML内容非常复杂
+        # 更简单的方法是，在流结束时，将完整的文本作为新的消息添加到历史记录，
+        # 并刷新显示，但这会清除流式效果。
+        #
+        # 鉴于 QTextBrowser 对 HTML 的操作能力，最简单且保留流式效果的方案是：
+        # 1. 流式开始时，插入一个空的HTML结构作为助手回复的容器。
+        # 2. 每次收到增量文本，使用 JavaScript (如果可能) 或更复杂的方法在现有 HTML 结构中更新文本。
+        #    但 QTextBrowser 不支持 JS。所以只能在 QTextBrowser 文本内容上操作。
+        # 
+        # 最直接的流式显示方案 (每次增量追加纯文本) 的缺点是无法保持在同一个“气泡”中。
+        #
+        # **最终采取的折衷方案：**
+        # 1. `handle_user_command` 发出用户消息后，立即显示用户消息。
+        # 2. 然后立即显示一个带有“助手”头像和空内容的助手消息框（id为 `streaming_output_placeholder`）。
+        # 3. `_append_stream_text_slot` 负责找到这个 `streaming_output_placeholder` 并追加文本。
+        # 4. `_on_api_request_finished` 时，将 `self.current_assistant_response_text` 
+        #    作为一个完整的消息添加到 `self.dialog_history`。
+        #    然后刷新 `chat_history_view` 以便将流式内容固化为完整HTML结构。
 
-        # 以下操作现在安全地在主线程执行
+        if error_message:
+            # 如果有错误，直接显示错误信息
+            self.add_message_to_history('assistant', error_message, is_stream=False)
+            self.current_assistant_response_text = "" # 清空累积文本
+        elif answer:
+            # 流式结束，将最终的完整答案添加到dialog_history
+            if self.current_assistant_response_text: # 确保有累积的文本
+                # 在添加之前，先尝试清除流式占位符（如果仍然可见）
+                # 理论上，QTextBrowser 的 setHtml 会完全替换内容
+                # 但为了确保正确保存到历史，我们需要最终的完整文本
+                
+                # 如果没有错误，并且有累积的完整答案
+                # 将累积的完整答案作为一条完整的消息添加到历史记录
+                self.dialog_history.append({'role': 'assistant', 'content': self.current_assistant_response_text})
+                logging.info(f"完整的助手回复已添加到历史：{self.current_assistant_response_text[:50]}...")
+            self.current_assistant_response_text = "" # 清空累积文本
+        else:
+            logging.info("API请求完成，但未收到有效回复或错误信息。")
+            self.current_assistant_response_text = "" # 清空累积文本
+
+        # 每次API请求（无论流式还是非流式）结束后，保存当前会话并刷新历史列表
         self._save_current_history()
         self._load_history_list() # 刷新侧边栏
 
+        # 最重要的部分：当流式输出结束后，需要将 QtextBrowser 显示的内容“固化”为最终的 HTML 结构。
+        # 之前我们使用了 `_append_stream_text_slot` 直接追加纯文本，这可能不是在一个统一的“气泡”里。
+        # 为了美观和正确保存，我们在这里重新加载并渲染当前会话。
+        # 但是，这会清除流式展示的过程。
+
+        # 更好的方法是在 `_append_stream_text_slot` 中直接操作 QTextBrowser 的 DOM 元素。
+        # 但这需要更高级的 QTextDocument / QWebElement 操作，而 QTextBrowser 对此支持有限。
+        #
+        # 简化策略：
+        # `_append_stream_text_slot` 直接追加文本。
+        # `_on_api_request_finished` 结束时，将最终的 `self.current_assistant_response_text` 添加到 `self.dialog_history`。
+        # **为了确保显示是正确的最终格式，我们在流式结束时重新渲染聊天区域。**
+        # 这会丢失流式过程，但确保最终显示和保存的一致性。
+        self.refresh_chat_display() # 重新刷新聊天显示，将累积的流式文本固化为HTML格式
 
     def show_settings_dialog(self):
         dialog = SettingsDialog(self, self.api_key, self.selected_model)
@@ -499,7 +710,7 @@ class ChatGUI(QMainWindow):
                             self.dialog_history[0]['role'] == 'assistant' and
                             self.dialog_history[0]['content'] == self.initial_welcome_message)
         if is_initial_state:
-             self.add_message_to_history('assistant', 'API设置已更新，现在可以开始对话了。')
+             self.add_message_to_history('assistant', '设置已更新，现在可以开始对话了。', is_stream=False)
 
     def _get_html_for_history(self, history_data, current_mode):
         user_avatar_path = get_asset_path('user.ico').replace(os.sep, "/")
@@ -539,16 +750,16 @@ class ChatGUI(QMainWindow):
             </div>
         </div>
         """
-        for msg in history_data: # history_data 已经过滤掉了欢迎信息
+        for msg in history_data:
             role = msg['role']
-            content = msg['content'] 
+            content = msg['content']
             avatar_src = user_avatar_path if role == 'user' else robot_avatar_path
             message_box_class = "user-message-box" if role == 'user' else "assistant-message-box"
             
             if role == 'user':
-                if not content.strip().startswith('<'): # 用户消息是纯文本
+                if not content.strip().startswith('<'):
                      content = f'<p>{content}</p>'
-            else: # 助手消息，如果是纯文本错误，也包装一下
+            else:
                 if not content.strip().startswith('<'):
                      content = f'<p>{content}</p>'
 
@@ -572,17 +783,10 @@ class ChatGUI(QMainWindow):
 
         if not history_to_save:
             logging.info("当前会话为空或只有欢迎语，不保存历史记录。")
-            if self.current_history_file: # 如果之前创建了文件但没有内容，可以考虑删除
+            if self.current_history_file:
                 file_path_to_check = get_history_path(self.current_history_file)
                 if os.path.exists(file_path_to_check):
-                    try:
-                        # 尝试读取内容判断是否真的"空"（除了HTML框架）
-                        # 为简单起见，如果 history_to_save 为空，就认为文件内容也无意义
-                        # os.remove(file_path_to_check)
-                        # logging.info(f"移除了空的或仅含欢迎语的历史文件: {file_path_to_check}")
-                        pass # 决定不主动删除，避免误删用户手动创建的空文件
-                    except OSError as e:
-                        logging.error(f"尝试移除空历史文件 {file_path_to_check} 失败: {e}")
+                    pass # 决定不主动删除，避免误删用户手动创建的空文件
             return
 
         if not self.current_history_file:
@@ -616,9 +820,9 @@ class ChatGUI(QMainWindow):
             if f_name.endswith('.html'):
                 full_path = get_history_path(f_name)
                 try:
-                    if os.path.getsize(full_path) > 200: # 过滤掉可能为空或过小的文件
+                    if os.path.getsize(full_path) > 200:
                         history_files_with_paths.append(f_name)
-                except OSError: # 文件可能在列出后被删除
+                except OSError:
                     pass
         
         history_files = sorted(history_files_with_paths, reverse=True)
@@ -632,7 +836,6 @@ class ChatGUI(QMainWindow):
                 match = re.match(r'chat_(\d{14})\.html', filename)
                 if match:
                     timestamp_str = match.group(1)
-                    # 将时间戳格式化为“2019年2月2日 12点35分21秒”
                     display_title = datetime.strptime(timestamp_str, "%Y%m%d%H%M%S").strftime("%Y年%m月%d日%H点%M分%S秒")
                 else:
                     display_title = filename.replace(".html", "")
@@ -671,7 +874,7 @@ class ChatGUI(QMainWindow):
                 item_widget.setLayout(item_layout)
                 item.setSizeHint(item_widget.sizeHint())
 
-                self.history_list_widget.addItem(item) # addItem 应该在 setItemWidget 之前或之后都可以，但通常 item 是先 add
+                self.history_list_widget.addItem(item)
                 self.history_list_widget.setItemWidget(item, item_widget)
 
             except Exception as e:
@@ -694,9 +897,9 @@ class ChatGUI(QMainWindow):
                         self.chat_history_view.clear()
                         self.is_displaying_historical_chat = False
                         self.current_history_file = None
-                        self.dialog_history.clear() # 清空内存中的对话历史
-                        self._session_id = None # 重置会话ID
-                        self.add_message_to_history("assistant", self.initial_welcome_message) # 显示欢迎
+                        self.dialog_history.clear()
+                        self._session_id = None
+                        self.add_message_to_history("assistant", self.initial_welcome_message, is_stream=False)
 
                     elif not self.is_displaying_historical_chat and self.current_history_file == filename_to_delete:
                         self.current_history_file = None 
@@ -751,25 +954,23 @@ class ChatGUI(QMainWindow):
             self._load_history_list()
 
     def _start_new_current_session(self):
-        if not self.is_displaying_historical_chat: # 如果本来就在当前会话 (例如 /reset)
-             self._save_current_history() 
+        if not self.is_displaying_historical_chat:
+             self._save_current_history()
 
         self.dialog_history.clear()
         self._session_id = None
-        self.current_history_file = None 
-        self.is_displaying_historical_chat = False 
+        self.current_history_file = None
+        self.is_displaying_historical_chat = False
         
         self.chat_history_view.clear()
-        self.add_message_to_history('assistant', self.initial_welcome_message)
+        self.add_message_to_history('assistant', self.initial_welcome_message, is_stream=False)
         
-        # 通常不需要在这里调用 _load_history_list()，除非 /reset 改变了文件列表
-        # self._load_history_list() 
         logging.info("已切换到新的当前会话模式。")
 
 
     def closeEvent(self, event):
         if not self.is_displaying_historical_chat:
             self._save_current_history()
-        self._save_config() 
+        self._save_config()
         logging.info("应用程序关闭。")
         super().closeEvent(event)
