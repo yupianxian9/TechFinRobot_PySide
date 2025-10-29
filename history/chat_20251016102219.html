@@ -1,0 +1,57 @@
+
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>聊天记录</title>
+            <link rel="stylesheet" href="file:///D:/竞赛和项目/软著/源代码 v 1.0/assets/light_mode_history.css" id="light-mode-style">
+            <link rel="stylesheet" href="file:///D:/竞赛和项目/软著/源代码 v 1.0/assets/dark_mode_history.css" id="dark-mode-style" disabled>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const body = document.body;
+                    const lightStyle = document.getElementById('light-mode-style');
+                    const darkStyle = document.getElementById('dark-mode-style');
+                    const mode = body.getAttribute('data-mode');
+                    if (mode === 'dark') {
+                        lightStyle.disabled = true;
+                        darkStyle.disabled = false;
+                    } else {
+                        lightStyle.disabled = false;
+                        darkStyle.disabled = true;
+                    }
+                });
+            </script>
+        </head>
+        <body data-mode="light">
+        
+        <div class="message-container">
+            <img src="file:///D:/竞赛和项目/软著/源代码 v 1.0/assets/robot.ico" class="avatar">
+            <div class="assistant-message-box">
+                <b>我是一个科技金融小助手</b>，很高兴回答你的问题！<br>输入 <code>/reset</code> 可以清空对话历史并开始新的会话。<br>您可以在左侧的“历史记录”中查看和管理以往的对话。
+            </div>
+        </div>
+        
+            <div class="message-container">
+                <img src="file:///D:/竞赛和项目/软著/源代码 v 1.0/assets/robot.ico" class="avatar">
+                <div class="assistant-message-box">
+                    <p>设置已更新，现在可以开始对话了。</p>
+                </div>
+            </div>
+            
+            <div class="message-container">
+                <img src="file:///D:/竞赛和项目/软著/源代码 v 1.0/assets/user.ico" class="avatar">
+                <div class="user-message-box">
+                    <p>江西省科技金融政策状况</p>
+                </div>
+            </div>
+            
+            <div class="message-container">
+                <img src="file:///D:/竞赛和项目/软著/源代码 v 1.0/assets/robot.ico" class="avatar">
+                <div class="assistant-message-box">
+                    <p>请求ID: 4d1297fe-3782-4b32-9db8-d7c67ec3f8e7
+错误码: 401
+错误信息: Invalid API-key provided.
+请参考文档：https://help.aliyun.com/zh/model-studio/developer-reference/error-code</p>
+                </div>
+            </div>
+            </body></html>

@@ -1,0 +1,111 @@
+
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>聊天记录</title>
+            <link rel="stylesheet" href="file:///d:/code/LLM/TechFinRobot_PySide/assets/light_mode_history.css" id="light-mode-style">
+            <link rel="stylesheet" href="file:///d:/code/LLM/TechFinRobot_PySide/assets/dark_mode_history.css" id="dark-mode-style" disabled>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const body = document.body;
+                    const lightStyle = document.getElementById('light-mode-style');
+                    const darkStyle = document.getElementById('dark-mode-style');
+                    const mode = body.getAttribute('data-mode');
+                    if (mode === 'dark') {
+                        lightStyle.disabled = true;
+                        darkStyle.disabled = false;
+                    } else {
+                        lightStyle.disabled = false;
+                        darkStyle.disabled = true;
+                    }
+                });
+            </script>
+        </head>
+        <body data-mode="light">
+        
+        <div class="message-container">
+            <img src="file:///d:/code/LLM/TechFinRobot_PySide/assets/robot.ico" class="avatar">
+            <div class="assistant-message-box">
+                <b>我是一个科技金融小助手</b>，很高兴回答你的问题！<br>输入 <code>/reset</code> 可以清空对话历史并开始新的会话。<br>您可以在左侧的“历史记录”中查看和管理以往的对话。
+            </div>
+        </div>
+        
+            <div class="message-container">
+                <img src="file:///d:/code/LLM/TechFinRobot_PySide/assets/robot.ico" class="avatar">
+                <div class="assistant-message-box">
+                    <p>API设置已更新，现在可以开始对话了。</p>
+                </div>
+            </div>
+            
+            <div class="message-container">
+                <img src="file:///d:/code/LLM/TechFinRobot_PySide/assets/user.ico" class="avatar">
+                <div class="user-message-box">
+                    <p>江西省科技金融政策</p>
+                </div>
+            </div>
+            
+            <div class="message-container">
+                <img src="file:///d:/code/LLM/TechFinRobot_PySide/assets/robot.ico" class="avatar">
+                <div class="assistant-message-box">
+                    <p>```html
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>江西省科技金融政策</title>
+</head>
+<body>
+    <h1>江西省科技金融政策概述</h1>
+    
+    <h2>1. 政策概述</h2>
+    <p>江西省高度重视科技金融结合，出台了一系列政策以促进科技创新和高新技术产业发展。以下是江西省科技金融政策的主要内容：</p>
+    
+    <h2>2. 主要政策措施</h2>
+    
+    <h3>2.1 科技信贷支持</h3>
+    <ul>
+        <li>建立健全科技信贷服务体系，对科技型中小企业贷款实行内部资金转移定价优惠。（<em>《关于发展科技金融支持创新创业若干措施》【2022】</em>）</li>
+        <li>设立“科贷通”贷款，单户企业贷款额度最高可达1000万元，省市（县、区）承担的风险责任最高可分担贷款未结清余额的60%。（<em>同上</em>）</li>
+        <li>对拟上市的科技型企业，省财政奖励20万元。（<em>《关于加强科技金融结合促进科技创新和高新技术产业发展若干意见》【2009】</em>）</li>
+    </ul>
+
+    <h3>2.2 创业投资引导</h3>
+    <ul>
+        <li>设立江西省科技创新发展基金，首期规模20亿元，引导社会资本参与科技型中小企业投资。（<em>《关于发展科技金融支持创新创业若干措施》【2022】</em>）</li>
+        <li>符合条件的创业投资企业可享受税收优惠政策，并鼓励地方政府设立创业投资引导资金。（<em>《关于加强科技金融结合促进科技创新和高新技术产业发展若干意见》【2009】</em>）</li>
+    </ul>
+
+    <h3>2.3 科技保险保障</h3>
+    <ul>
+        <li>支持保险机构开发科技保险特色险种，对新材料首批次应用保险补偿比例不低于60%，单个企业最高补偿100万元。（<em>《关于发展科技金融支持创新创业若干措施》【2022】</em>）</li>
+        <li>对参加科技保险的科技型企业给予保险费补助。（<em>《关于加强科技金融结合促进科技创新和高新技术产业发展若干意见》【2009】</em>）</li>
+    </ul>
+
+    <h3>2.4 资本市场对接</h3>
+    <ul>
+        <li>支持科技型企业通过“映山红行动”在科创板、创业板、北交所等上市融资。（<em>《关于发展科技金融支持创新创业若干措施》【2022】</em>）</li>
+        <li>拟上市科技企业在改制重组过程中可享受交易税费减免和建设用地优先安排。（<em>《关于加强科技金融结合促进科技创新和高新技术产业发展若干意见》【2009】</em>）</li>
+    </ul>
+
+    <h3>2.5 企业资质与支持</h3>
+    <ul>
+        <li>高新技术企业和专精特新企业是重点支持对象，可在科技计划立项、上市融资、知识产权服务等方面获得优先支持。（<em>《关于加强科技金融结合促进科技创新和高新技术产业发展若干意见》【2009】</em>）</li>
+    </ul>
+
+    <h2>3. 适用企业类型</h2>
+    <p>政策主要适用于高新技术企业、专精特新企业、科技型中小企业及创新创业企业。</p>
+
+    <h2>4. 政策依据</h2>
+    <ul>
+        <li>《关于加强科技金融结合促进科技创新和高新技术产业发展若干意见》【2009】</li>
+        <li>《关于发展科技金融支持创新创业若干措施》【2022】</li>
+    </ul>
+
+    <p>以上政策具体内容可参考相关文件，或联系当地科技部门获取详细信息。</p>
+</body>
+</html>
+```</p>
+                </div>
+            </div>
+            </body></html>

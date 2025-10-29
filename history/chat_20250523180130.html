@@ -1,0 +1,101 @@
+
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>聊天记录</title>
+            <link rel="stylesheet" href="file:///d:/code/LLM/TechFinRobot_PySide/assets/light_mode_history.css" id="light-mode-style">
+            <link rel="stylesheet" href="file:///d:/code/LLM/TechFinRobot_PySide/assets/dark_mode_history.css" id="dark-mode-style" disabled>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const body = document.body;
+                    const lightStyle = document.getElementById('light-mode-style');
+                    const darkStyle = document.getElementById('dark-mode-style');
+                    const mode = body.getAttribute('data-mode');
+                    if (mode === 'dark') {
+                        lightStyle.disabled = true;
+                        darkStyle.disabled = false;
+                    } else {
+                        lightStyle.disabled = false;
+                        darkStyle.disabled = true;
+                    }
+                });
+            </script>
+        </head>
+        <body data-mode="light">
+        
+        <div class="message-container">
+            <img src="file:///d:/code/LLM/TechFinRobot_PySide/assets/robot.ico" class="avatar">
+            <div class="assistant-message-box">
+                <b>我是一个科技金融小助手</b>，很高兴回答你的问题！<br>输入 <code>/reset</code> 可以清空对话历史并开始新的会话。<br>您可以在左侧的“历史记录”中查看和管理以往的对话。
+            </div>
+        </div>
+        
+            <div class="message-container">
+                <img src="file:///d:/code/LLM/TechFinRobot_PySide/assets/robot.ico" class="avatar">
+                <div class="assistant-message-box">
+                    <p>API设置已更新，现在可以开始对话了。</p>
+                </div>
+            </div>
+            
+            <div class="message-container">
+                <img src="file:///d:/code/LLM/TechFinRobot_PySide/assets/user.ico" class="avatar">
+                <div class="user-message-box">
+                    <p>江西省科技金融政策</p>
+                </div>
+            </div>
+            
+            <div class="message-container">
+                <img src="file:///d:/code/LLM/TechFinRobot_PySide/assets/robot.ico" class="avatar">
+                <div class="assistant-message-box">
+                    <!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>江西省科技金融政策</title>
+</head>
+<body>
+    <h1>江西省科技金融政策概述</h1>
+    <p>江西省近年来出台了一系列科技金融政策，旨在促进科技创新和高新技术产业发展，支持创新创业。以下是相关政策的主要内容：</p>
+
+    <h2>一、增强科技信贷服务能力</h2>
+    <ul>
+        <li><strong>建立健全科技信贷服务体系：</strong> 鼓励银行业金融机构将科技创新作为重点服务领域，研究制定专项产品支持措施。</li>
+        <li><strong>用好用足货币政策工具：</strong> 发挥科技创新再贷款支持作用，安排不少于50亿元再贷款专用额度。</li>
+        <li><strong>强化货币信贷政策引导：</strong> 建立科技信贷政策导向效果评估制度，对表现突出的单位和个人给予通报表扬。</li>
+        <li><strong>创新科技信贷业务模式与合作机制：</strong> 鼓励采用“贷款（担保）+远期权益”等新模式支持科技型企业。</li>
+        <li><strong>增强开发性、政策性金融服务科技创新力度：</strong> 以专项贷款产品为抓手，加大对重大科技成果转化与产业化的中长期融资支持。</li>
+        <li><strong>大力提升“科贷通”运行质效：</strong> 对纳入备选企业库的企业加大融资支持力度，单户企业贷款额度最高可达1000万元。</li>
+        <li><strong>发挥创业担保贷款支持创新创业作用：</strong> 符合条件的高层次人才个人贷款额度最高可达30万元。</li>
+    </ul>
+
+    <h2>二、营造科技创业投资发展环境</h2>
+    <ul>
+        <li><strong>鼓励投资机构在赣开展创业投资业务：</strong> 给予适当尽职调查费用补助。</li>
+        <li><strong>加快科创基金设立和运营：</strong> 设立江西省科技创新发展基金，首期规模20亿元。</li>
+    </ul>
+
+    <h2>三、发挥科技保险风险保障作用</h2>
+    <ul>
+        <li><strong>强化研发创新和科技成果转化的保险保障：</strong> 支持保险机构创新特色险种，争取科技保险保额逐年增长。</li>
+    </ul>
+
+    <h2>四、推进科技型企业对接资本市场</h2>
+    <ul>
+        <li><strong>加强科技型企业上市服务支持：</strong> 发掘培养高成长科技型企业，支持其在科创板、创业板等上市融资。</li>
+    </ul>
+
+    <h2>五、强化基础服务和改革保障</h2>
+    <ul>
+        <li><strong>建立金融支持科技型企业“白名单”：</strong> 探索建立创新能力信息体系。</li>
+        <li><strong>强化技术评价服务支撑：</strong> 鼓励金融机构建立专属融资评价体系。</li>
+        <li><strong>加强科技项目与金融服务的协同联动：</strong> 在立项评审中将金融资金投入情况纳入参考指标。</li>
+        <li><strong>支持各地区结合本地实际发展科技金融：</strong> 鼓励开展科技金融改革试点。</li>
+    </ul>
+
+    <p>以上政策来源于《江西省人民政府印发<关于发展科技金融支持创新创业若干措施>》【2022/12/1】。</p>
+</body>
+</html>
+                </div>
+            </div>
+            </body></html>

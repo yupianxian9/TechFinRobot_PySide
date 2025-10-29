@@ -1,0 +1,63 @@
+/* assets/light_mode_history.css */
+/* 仅用于渲染保存的HTML历史记录文件 */
+body {
+    font-family: "微软雅黑", "Segoe UI", sans-serif;
+    font-size: 10pt;
+    margin: 0;
+    padding: 10px;
+    background-color: #F8F9FA; /* 极浅灰，接近白色 */
+    color: #343A40; /* 深灰文本 */
+}
+.message-container {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+.avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 100%;
+    margin-right: 8px;
+    vertical-align: top;
+}
+.user-message-box {
+    background-color: #DCF8C6; /* 柔和的浅绿色气泡 */
+    border: 1px solid #C8E6A3;
+    padding: 8px;
+    border-radius: 8px;
+    max-width: 75%;
+    flex-grow: 1; /* 虽然在QTextBrowser内部不起作用，但保留兼容性 */
+    color: #343A40;
+    word-wrap: break-word;
+}
+.assistant-message-box {
+    background-color: #FFFFFF; /* 白色气泡 */
+    border: 1px solid #E0E0E0;
+    padding: 8px;
+    border-radius: 8px;
+    max-width: 75%;
+    flex-grow: 1; /* 虽然在QTextBrowser内部不起作用，但保留兼容性 */
+    color: #343A40;
+    word-wrap: break-word;
+}
+a {
+    color: #007BFF;
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+code {
+    background-color: #F0F0F0;
+    border-radius: 3px;
+    padding: 2px 4px;
+    font-family: monospace;
+}
+pre {
+    background-color: #EEE;
+    border-radius: 5px;
+    padding: 10px;
+    overflow-x: auto; /* 对于代码块，可能需要横向滚动 */
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}

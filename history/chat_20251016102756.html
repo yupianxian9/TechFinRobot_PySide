@@ -1,0 +1,112 @@
+
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>聊天记录</title>
+            <link rel="stylesheet" href="file:///D:/竞赛和项目/软著/源代码 v 1.0/assets/light_mode_history.css" id="light-mode-style">
+            <link rel="stylesheet" href="file:///D:/竞赛和项目/软著/源代码 v 1.0/assets/dark_mode_history.css" id="dark-mode-style" disabled>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const body = document.body;
+                    const lightStyle = document.getElementById('light-mode-style');
+                    const darkStyle = document.getElementById('dark-mode-style');
+                    const mode = body.getAttribute('data-mode');
+                    if (mode === 'dark') {
+                        lightStyle.disabled = true;
+                        darkStyle.disabled = false;
+                    } else {
+                        lightStyle.disabled = false;
+                        darkStyle.disabled = true;
+                    }
+                });
+            </script>
+        </head>
+        <body data-mode="light">
+        
+        <div class="message-container">
+            <img src="file:///D:/竞赛和项目/软著/源代码 v 1.0/assets/robot.ico" class="avatar">
+            <div class="assistant-message-box">
+                <b>我是一个科技金融小助手</b>，很高兴回答你的问题！<br>输入 <code>/reset</code> 可以清空对话历史并开始新的会话。<br>您可以在左侧的“历史记录”中查看和管理以往的对话。
+            </div>
+        </div>
+        
+            <div class="message-container">
+                <img src="file:///D:/竞赛和项目/软著/源代码 v 1.0/assets/robot.ico" class="avatar">
+                <div class="assistant-message-box">
+                    <p>设置已更新，现在可以开始对话了。</p>
+                </div>
+            </div>
+            
+            <div class="message-container">
+                <img src="file:///D:/竞赛和项目/软著/源代码 v 1.0/assets/user.ico" class="avatar">
+                <div class="user-message-box">
+                    <p>江西省科技金融政策状况</p>
+                </div>
+            </div>
+            
+            <div class="message-container">
+                <img src="file:///D:/竞赛和项目/软著/源代码 v 1.0/assets/robot.ico" class="avatar">
+                <div class="assistant-message-box">
+                    <html>
+  <body>
+    <h2>江西省科技金融政策状况（截至2025年）</h2>
+    <p>根据最新政策文件与实施情况，江西省已构建起较为完善的科技金融政策体系，聚焦支持科技创新、高新技术产业发展和创新创业企业成长。以下从政策框架、信贷支持、融资工具创新、服务体系构建等方面进行系统梳理。</p>
+
+    <h3>一、政策框架持续完善，顶层设计明确</h3>
+    <p>近年来，江西省围绕“科技兴赣”战略，出台多项政策推动科技与金融深度融合：</p>
+    <ul>
+      <li><strong>《关于发展科技金融支持创新创业的若干措施》</strong>【2022/12/1】：由江西省人民政府印发，明确提出增强科技信贷服务能力、用好货币政策工具、创新业务模式等7大类措施，强化对科技型中小企业和高层次人才创业的支持。</li>
+      <li><strong>《江西省“益企成长”科技金融服务能力提升行动方案》《江西省“益企成长”科技金融拓展提升工作方案（2025-2026年）》</strong>【2025/4/25】：人民银行江西省分行牵头制定，提出未来两年重点推进科技金融服务能力提升，形成全方位、多层次的服务体系。</li>
+      <li><strong>《推动做好“五篇大文章”三年行动计划（2024-2026年）》</strong>【2025/4/25】：包含18条支持科技创新的金融举措，强化政策协同与资源统筹。</li>
+    </ul>
+
+    <h3>二、科技信贷支持力度显著增强</h3>
+    <p>通过结构性货币政策工具和差异化监管机制，持续加大信贷资源向科技型企业倾斜：</p>
+    <ul>
+      <li>2024年，安排<strong>100亿元支农支小再贷款专用额度</strong>，定向支持地方法人银行发放科技型小微企业贷款达187.2亿元。</li>
+      <li>设立不少于<strong>50亿元再贷款专用额度</strong>，优先支持科技型小微企业票据融资并提供再贴现资金支持（责任单位：人行南昌中心支行）。</li>
+      <li>鼓励银行业金融机构对科技型中小企业实行内部资金转移定价优惠，小微型科技企业不良贷款容忍度可较各项贷款不良率提高不超过3个百分点（江西银保监局牵头）。</li>
+      <li>建立科技信贷政策导向效果评估制度，将“白名单”企业贷款增速纳入考核，并作为再贷款再贴现工具运用的重要参考。</li>
+    </ul>
+
+    <h3>三、多元化融资渠道不断拓宽</h3>
+    <p>江西省积极推动直接融资与创新金融产品落地，破解初创期企业融资难题：</p>
+    <ul>
+      <li><strong>债券市场突破</strong>：实现全国首单国内国际双认证科技创新气候债券、首单10年期科技创新低碳转型公司债券、首单“银行保函”增信知识产权资产支持专项票据在江西落地；省内首单民营企业科创票据成功发行。</li>
+      <li><strong>股权投资发展</strong>：江西首支省级科创基金——“<strong>兴赣科技创新股权投资基金</strong>”正式成立并投入运营，为早期科技项目提供资本支持。</li>
+      <li><strong>担保与风险分担机制优化</strong>：“科贷通”风险分担机制进一步完善，省市县三级最高可承担贷款未结清余额的60%风险责任，单户企业贷款额度最高可达1000万元（省科技厅牵头）。</li>
+    </ul>
+
+    <h3>四、科技金融服务生态逐步健全</h3>
+    <p>通过平台建设、机制创新和服务模式升级，打造覆盖全生命周期的科技金融服务体系：</p>
+    <ul>
+      <li><strong>银企合作模式创新</strong>：推广“益企成长”银企中长期战略合作模式，探索“见贷即投”“见投即贷”“见保即贷”等跨领域联动机制，促进投贷联动。</li>
+      <li><strong>科技保险保障能力提升</strong>：截至2024年末，科技保险保障金额达<strong>7312.4亿元</strong>，覆盖研发、成果转化、孵化及知识产权保护等多个环节。</li>
+      <li><strong>科技金融联盟建设</strong>：印发《江西省科技金融联盟实施办法（试行）》，组织银行、证券、保险、租赁、投资基金等机构搭建信息互通与协作平台。</li>
+      <li><strong>数字赋能精准服务</strong>：启动“科创力增信工程”，依托江西赣金普惠平台和企业收支流水大数据征信平台，挖掘交易数据助力金融机构精准画像。</li>
+    </ul>
+
+    <h3>五、地方特色实践涌现，形成典型经验</h3>
+    <p>各地市结合产业实际积极探索科技金融新模式：</p>
+    <ul>
+      <li><strong>南昌高新区</strong>：率先开展“企业创新积分制”试点，已与20家金融机构合作，依据创新能力量化评分给予融资支持。</li>
+      <li><strong>鹰潭市</strong>：政银保担四方合力，做强铜供应链金融，服务铜产业现代化升级。</li>
+      <li><strong>宜春市</strong>：成立科创金融服务中心，推出“全生命周期”管家式服务。</li>
+      <li><strong>抚州市</strong>：推出“知抚贷”产品，探索建设省级科技金融实验区。</li>
+    </ul>
+
+    <h3>六、企业上市支持政策延续</h3>
+    <p>根据《关于加强科技金融结合促进科技创新和高新技术产业发展若干意见》【2009/4/22】：</p>
+    <ul>
+      <li>拟上市科技企业与证券公司签署保荐协议并在江西证监局完成上市备案后，省财政奖励该企业<strong>20万元</strong>。</li>
+      <li>在改制重组过程中涉及资产置换、登记过户等税费按规定减免，建设用地依法优先安排。</li>
+    </ul>
+
+    <h3>总结</h3>
+    <p>当前，江西省已形成以政策引导为牵引、信贷支持为基础、股权债权联动为支撑、服务平台为纽带的科技金融发展格局。未来将以《江西省“益企成长”科技金融拓展提升工作方案（2025-2026年）》为主线，持续推进“金融活水育新能谷雨行动”，加速培育新质生产力，助力科技强省建设。</p>
+  </body>
+</html>
+                </div>
+            </div>
+            </body></html>

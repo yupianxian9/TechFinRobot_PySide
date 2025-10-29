@@ -1,0 +1,250 @@
+/* assets/light_mode.qss - 优化版 */
+/* ---------------------------------------------------- */
+/* Global Styles for QMainWindow and basic widgets */
+/* ---------------------------------------------------- */
+QMainWindow {
+    background-color: #F8F9FA; /* 极浅灰，接近白色，作为主窗口背景 */
+    color: #343A40; /* 深灰文本，良好可读性 */
+    font-family: "微软雅黑", "Segoe UI", sans-serif; /* 统一字体 */
+    font-size: 10pt;
+}
+/* ---------------------------------------------------- */
+/* Chat History View (QTextBrowser) */
+/* ---------------------------------------------------- */
+QTextBrowser {
+    border: 1px solid #DEE2E6; /* 浅灰色边框 */
+    border-radius: 8px; /* 圆角更大，更柔和 */
+    background-color: #FFFFFF; /* 白色背景，干净 */
+    color: #343A40; /* 文本颜色 */
+    padding: 10px; /* 内边距 */
+    line-height: 1.6; /* 更好的行高 */
+}
+/* 链接样式 */
+QTextBrowser a {
+    color: #007BFF; /* 蓝色链接 */
+    text-decoration: none; /* 默认无下划线 */
+}
+QTextBrowser a:hover {
+    text-decoration: underline; /* 鼠标悬停时下划线 */
+}
+/* 聊天气泡样式：用户消息 */
+QTextBrowser div.user-message-box {
+    background-color: #DCF8C6; /* 柔和的浅绿色气泡 */
+    border: 1px solid #C8E6A3; /* 对应边框 */
+    padding: 8px;
+    border-radius: 8px;
+    max-width: 75%;
+    color: #343A40; /* 深灰文本 */
+}
+/* 聊天气泡样式：助手消息 */
+QTextBrowser div.assistant-message-box {
+    background-color: #FFFFFF; /* 白色气泡 */
+    border: 1px solid #E0E0E0; /* 柔和的灰色边框 */
+    padding: 8px;
+    border-radius: 8px;
+    max-width: 75%;
+    color: #343A40; /* 深灰文本 */
+}
+/* 对于 QTextBrowser 内部的 code 标签 */
+QTextBrowser code {
+    background-color: #F0F0F0;
+    border-radius: 3px;
+    padding: 2px 4px;
+    font-family: monospace;
+}
+/* 对于 QTextBrowser 内部的 pre 标签 */
+QTextBrowser pre {
+    background-color: #EEE;
+    border-radius: 5px;
+    padding: 10px;
+    white-space: pre-wrap; /* 自动换行 */
+    word-wrap: break-word;
+}
+/* ---------------------------------------------------- */
+/* User Input Area (QTextEdit) */
+/* ---------------------------------------------------- */
+QTextEdit {
+    border: 1px solid #CED4DA; /* 中度灰色边框 */
+    border-radius: 8px; /* 圆角 */
+    background-color: #FFFFFF; /* 白色背景 */
+    color: #343A40; /* 文本颜色 */
+    padding: 8px; /* 内边距 */
+}
+QTextEdit::placeholder-text { /* PySide6/Qt 5.14+ */
+    color: #6C757D; /* 占位符文本颜色 */
+}
+/* ---------------------------------------------------- */
+/* Buttons */
+/* ---------------------------------------------------- */
+/* General Button Style */
+QPushButton {
+    font-weight: bold; /* 字体加粗 */
+    padding: 10px 20px; /* 增大内边距 */
+    border-radius: 6px; /* 适当圆角 */
+    border: none; /* 无边框 */
+    background-color: #007BFF; /* 主按钮蓝色 */
+    color: white; /* 白色文本 */
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+}
+QPushButton:hover {
+    background-color: #0056B3; /* 悬停时深蓝色 */
+}
+QPushButton:pressed {
+    background-color: #004085; /* 按下时更深蓝色 */
+}
+/* Specific Button Styles (e.g., Send Button) */
+QPushButton#send_button {
+    background-color: #28A745; /* 绿色 */
+}
+QPushButton#send_button:hover {
+    background-color: #218838;
+}
+QPushButton#send_button:pressed {
+    background-color: #1E7E34;
+}
+/* Bottom Control Buttons (Settings, Dark Mode, Clear History) */
+QPushButton#settings_button,
+QPushButton#dark_mode_button,
+QPushButton#clear_history_button { /* 注意：这里是清空对话按钮的ID */
+    background-color: transparent; /* 透明背景 */
+    border: none; /* 无边框 */
+    color: #6C757D; /* 柔和的灰色文本 */
+    padding: 5px 10px; /* 较小的内边距 */
+    font-weight: normal; /* 正常字体粗细 */
+}
+QPushButton#settings_button:hover,
+QPushButton#dark_mode_button:hover,
+QPushButton#clear_history_button:hover {
+    color: #007BFF; /* 悬停时变为蓝色 */
+    text-decoration: underline; /* 下划线 */
+}
+/* ---------------------------------------------------- */
+/* QComboBox (Dropdowns) */
+/* ---------------------------------------------------- */
+QComboBox {
+    border: 1px solid #CED4DA;
+    border-radius: 4px;
+    padding: 5px 10px; /* 增加内边距 */
+    background: #FFFFFF;
+    color: #343A40;
+    selection-background-color: #007BFF; /* 选中项背景 */
+    selection-color: white; /* 选中项文本 */
+}
+QComboBox::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    width: 25px; /* 增大下拉箭头区域 */
+    border-left-width: 1px;
+    border-left-color: #CED4DA; /* 边框颜色 */
+    border-left-style: solid;
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+/* 绘制下拉箭头 */
+QComboBox::down-arrow {
+    width: 0px;
+    height: 0px;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid #6C757D; /* 箭头颜色 */
+    margin-top: 4px; /* 微调箭头位置 */
+    margin-left: 5px; /* 微调箭头位置 */
+}
+QComboBox QAbstractItemView { /* 下拉列表的样式 */
+    border: 1px solid #CED4DA;
+    background-color: #FFFFFF;
+    color: #343A40;
+    selection-background-color: #007BFF;
+    selection-color: white;
+}
+/* ---------------------------------------------------- */
+/* QLineEdit (Text Input Fields) */
+/* ---------------------------------------------------- */
+QLineEdit {
+    border: 1px solid #CED4DA;
+    border-radius: 4px;
+    padding: 5px 8px;
+    background-color: #FFFFFF;
+    color: #343A40;
+}
+QLineEdit:focus {
+    border: 1px solid #007BFF; /* 聚焦时蓝色边框 */
+}
+/* ---------------------------------------------------- */
+/* General QLabel (Labels) */
+/* ---------------------------------------------------- */
+QLabel {
+    color: #343A40;
+}
+/* ---------------------------------------------------- */
+/* QDialog (Settings Dialog) */
+/* ---------------------------------------------------- */
+QDialog {
+    background-color: #F8F9FA;
+    color: #343A40;
+}
+/* Settings Dialog Specific Buttons */
+QDialog QPushButton {
+    padding: 8px 15px;
+    border-radius: 4px;
+}
+QDialog QPushButton#save_button {
+    background-color: #28A745;
+    color: white;
+}
+QDialog QPushButton#save_button:hover {
+    background-color: #218838;
+}
+QDialog QPushButton#cancel_button {
+    background-color: #6C757D;
+    color: white;
+}
+QDialog QPushButton#cancel_button:hover {
+    background-color: #5A6268;
+}
+/* ---------------------------------------------------- */
+/* New: Sidebar (QListWidget and associated labels) */
+/* ---------------------------------------------------- */
+QWidget#sidebar_widget { /* 给sidebar_widget一个objectName以便QSS应用 */
+    background-color: #F0F2F5; /* 侧边栏背景色 */
+    border-right: 1px solid #DEE2E6; /* 右边框 */
+    border-radius: 5px; /* 柔和的圆角 */
+    padding: 5px;
+}
+QListWidget {
+    border: none; /* 无边框 */
+    background-color: transparent; /* 背景透明，使用父Widget的背景 */
+    color: #343A40; /* 默认文本颜色 */
+    padding: 0;
+}
+QListWidget::item {
+    padding: 8px 5px; /* 项的内边距 */
+    margin-bottom: 3px; /* 项之间的间距 */
+    border-radius: 4px; /* 项的圆角 */
+}
+QListWidget::item:hover {
+    background-color: #E2E6EA; /* 悬停背景色 */
+}
+QListWidget::item:selected {
+    background-color: #007BFF; /* 选中背景色 */
+    color: white; /* 选中文本颜色 */
+}
+/* 历史记录标题的QLabel样式，保持和主应用QLabel一样 */
+QLabel#sidebar_label { /* 给侧边栏标题Label一个objectName */
+    color: #343A40;
+}
+/* 历史记录项中的删除按钮 */
+QListWidget QPushButton#history_delete_button {
+    background-color: transparent;
+    border: none;
+    padding: 2px;
+    border-radius: 3px;
+}
+QListWidget QPushButton#history_delete_button:hover {
+    background-color: #E0E0E0; /* 悬停时给一点反馈 */
+}
+QListWidget QPushButton#history_delete_button:pressed {
+    background-color: #D0D0D0; /* 按下时颜色 */
+}
